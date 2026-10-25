@@ -1,6 +1,7 @@
 # Déploiement sur Ubuntu 22.04
 
-Architecture : `caddy` (HTTPS, ports 80/443) -> `api` (Hono) et `overlay` (nginx). Seul Caddy est exposé.
+Architecture : le Caddy déjà présent sur le serveur (`~/apps/caddy`, réseau Docker `caddy_net`, ports 80/443)
+envoie le trafic vers `api` (Hono) et `overlay` (nginx) de ce projet. Ces deux services ne publient aucun port.
 
 ## 1. Prérequis
 
@@ -40,6 +41,15 @@ docker compose ps          # api doit passer en "healthy"
 docker compose logs -f api
 ```
 
+## 5 bis. Déclarer le site dans le Caddy existant
+
+Ajouter le bloc du [Caddyfile](Caddyfile) de ce dépôt (avec votre domaine) à la fin de
+`/home/ubuntu/apps/caddy/conf/Caddyfile`, puis recharger Caddy sans coupure :
+
+```bash
+docker exec caddy-caddy-1 caddy reload --config /etc/caddy/Caddyfile
+```
+
 ## 6. Connecter Spotify (une seule fois)
 
 Ouvrir `https://VOTRE_DOMAINE/spotify/login?key=VOTRE_ADMIN_KEY` et accepter.
@@ -52,5 +62,6 @@ Source Navigateur -> `https://VOTRE_DOMAINE/` (largeur ~500, hauteur ~150).
 
 - Mise à jour : `git pull && docker compose up -d --build`
 - Logs : `docker compose logs -f`
-- Les tokens sont dans le volume `api_data` et les certificats dans `caddy_data` : ne les supprimez pas
-  (`docker compose down` les garde, `docker compose down -v` les efface).
+- Les tokens sont dans le volume `api_data` : ne le supprimez pas
+  (`docker compose down` le garde, `docker compose down -v` l'efface).
+- Les certificats sont gérés par l'autre projet Caddy.

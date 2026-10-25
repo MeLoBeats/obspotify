@@ -1,18 +1,19 @@
-# Reverse proxy + HTTPS automatique (certificat Let's Encrypt géré par Caddy).
-# {$DOMAIN} vient du fichier .env à la racine (ex: obs.monsite.fr).
-# Prérequis : l'enregistrement DNS du domaine pointe vers l'IP du serveur,
-# et les ports 80 + 443 sont ouverts.
-{$DOMAIN} {
+# À AJOUTER au Caddyfile du Caddy existant du serveur
+# (/home/ubuntu/apps/caddy/conf/Caddyfile). Ce fichier n'est pas monté par compose.yml.
+#
+# Remplacer obs.example.com par votre domaine (DNS déjà pointé vers le serveur).
+# Caddy obtient le certificat HTTPS tout seul.
+obs.example.com {
 	encode zstd gzip
 
-	# Routes de l'API -> conteneur "api"
+	# Routes de l'API -> conteneur de ce projet (alias sur le réseau caddy_net)
 	@api path /spotify/* /callback /health
 	handle @api {
-		reverse_proxy api:8000
+		reverse_proxy obspotify-api:8000
 	}
 
 	# Tout le reste -> overlay (fichiers statiques)
 	handle {
-		reverse_proxy overlay:80
+		reverse_proxy obspotify-overlay:80
 	}
 }
