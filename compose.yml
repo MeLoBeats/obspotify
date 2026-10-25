@@ -1,0 +1,45 @@
+# Déploiement : docker compose up -d --build
+# Prérequis : fichier .env à la racine (DOMAIN=...) et apps/api/.env.production (voir apps/api/.env.example).
+services:
+  # --- API (Hono) : jamais exposée directement, uniquement via Caddy
+  api:
+    build: ./apps/api
+    restart: unless-stopped
+    env_file: apps/api/.env.production
+    environment:
+      NODE_ENV: production
+      PORT: "8000"
+      # Base SQLite dans le volume api_data (persistant)
+      DB_FILE_NAME: file:/data/db.sqlite
+      # Doit être EXACTEMENT déclarée dans le dashboard Spotify (Redirect URIs)
+      SPOTIFY_REDIRECT_URI: https://${DOMAIN:?DOMAIN manquant dans .env}/callback
+    volumes:
+      - api_data:/data
+
+  # --- Overlay (fichiers statiques via nginx)
+  overlay:
+    build: ./apps/overlay
+    restart: unless-stopped
+
+  # --- Reverse proxy HTTPS : seul service accessible depuis Internet
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    depends_on:
+      - api
+      - overlay
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp" # HTTP/3
+    environment:
+      DOMAIN: ${DOMAIN:?DOMAIN manquant dans .env}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data # certificats : à ne pas perdre
+      - caddy_config:/config
+
+volumes:
+  api_data:
+  caddy_data:
+  caddy_config:

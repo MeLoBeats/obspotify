@@ -1,0 +1,18 @@
+# Reverse proxy + HTTPS automatique (certificat Let's Encrypt géré par Caddy).
+# {$DOMAIN} vient du fichier .env à la racine (ex: obs.monsite.fr).
+# Prérequis : l'enregistrement DNS du domaine pointe vers l'IP du serveur,
+# et les ports 80 + 443 sont ouverts.
+{$DOMAIN} {
+	encode zstd gzip
+
+	# Routes de l'API -> conteneur "api"
+	@api path /spotify/* /callback /health
+	handle @api {
+		reverse_proxy api:8000
+	}
+
+	# Tout le reste -> overlay (fichiers statiques)
+	handle {
+		reverse_proxy overlay:80
+	}
+}
