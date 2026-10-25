@@ -9,10 +9,10 @@
       "node"
     ],
     "jsx": "react-jsx",
-    "jsxImportSource": "hono/jsx",
-    "rootDir": "./src",
-    "outDir": "./dist"
+    "jsxImportSource": "hono/jsx"
   },
-  "include": ["src"],
+  // Config utilisée par l'éditeur : couvre aussi drizzle.config.ts.
+  // Le build (npm run build) utilise tsconfig.build.json.
+  "include": ["src", "drizzle.config.ts"],
   "exclude": ["node_modules"]
 }

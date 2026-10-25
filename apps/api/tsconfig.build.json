@@ -1,0 +1,10 @@
+{
+  // Config de compilation (npm run build) : uniquement src/ -> dist/.
+  // drizzle.config.ts est exclu car il est hors de rootDir.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "rootDir": "./src",
+    "outDir": "./dist"
+  },
+  "include": ["src"]
+}
